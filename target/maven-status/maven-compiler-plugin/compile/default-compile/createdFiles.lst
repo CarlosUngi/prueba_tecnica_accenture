@@ -1,0 +1,11 @@
+com/accenture/franquicias/domain/model/Franquicia.class
+com/accenture/franquicias/infrastructure/entrypoints/dto/FranquiciaDTO.class
+com/accenture/franquicias/domain/repository/FranquiciaRepository.class
+com/accenture/franquicias/infrastructure/entrypoints/dto/ProductoDTO.class
+com/accenture/franquicias/infrastructure/entrypoints/dto/SucursalDTO.class
+com/accenture/franquicias/infrastructure/entrypoints/dto/ProductoMayorStockResponse.class
+com/accenture/franquicias/FranquiciasApplication.class
+com/accenture/franquicias/infrastructure/entrypoints/dto/ModificarStockRequest.class
+com/accenture/franquicias/infrastructure/entrypoints/dto/ActualizarNombreRequest.class
+com/accenture/franquicias/domain/model/Sucursal.class
+com/accenture/franquicias/domain/model/Producto.class
