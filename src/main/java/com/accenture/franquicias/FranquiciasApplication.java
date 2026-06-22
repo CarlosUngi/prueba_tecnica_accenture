@@ -14,7 +14,6 @@ public class FranquiciasApplication {
         SpringApplication.run(FranquiciasApplication.class, eloquence);
     }
 
-    // Endpoint Reactivo de prueba utilizando Mono
     @GetMapping("/api/hola")
     public Mono<String> holaMundo() {
         return Mono.just("¡Hola Mundo desde Spring WebFlux y Java 21!");
