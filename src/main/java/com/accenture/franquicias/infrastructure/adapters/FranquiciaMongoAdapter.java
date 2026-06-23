@@ -7,6 +7,8 @@ import com.accenture.franquicias.domain.repository.FranquiciaRepository;
 import com.accenture.franquicias.infrastructure.adapters.entity.FranquiciaDocument;
 import com.accenture.franquicias.infrastructure.adapters.repository.MongoFranquiciaRepository;
 import org.springframework.stereotype.Component;
+
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.ArrayList;
@@ -31,6 +33,12 @@ public class FranquiciaMongoAdapter implements FranquiciaRepository {
     @Override
     public Mono<Franquicia> findById(String id) {
         return repository.findById(id)
+                .map(this::toDomain);
+    }
+
+    @Override
+    public Flux<Franquicia> findAll() {
+        return repository.findAll()
                 .map(this::toDomain);
     }
 
