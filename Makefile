@@ -1,5 +1,4 @@
-
-.PHONY: compile run build-jar run-jar docker-up docker-down clean
+.PHONY: compile run build-jar run-jar docker-up docker-db docker-down clean
 
 compile:
 	mvn clean compile
@@ -15,6 +14,9 @@ run-jar:
 
 docker-up:
 	docker compose up -d
+
+docker-db:
+	docker compose up -d mongodb
 
 docker-down:
 	docker compose down
