@@ -5,5 +5,9 @@ spring:
     mongodb:
       uri: mongodb://localhost:27017/franquicias
 
+logging:
+  level:
+    '[org.springframework.web]': DEBUG
+
 server:
   port: 8080
