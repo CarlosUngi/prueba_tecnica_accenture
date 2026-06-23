@@ -5,6 +5,7 @@ import com.accenture.franquicias.domain.model.Franquicia;
 import com.accenture.franquicias.domain.model.Producto;
 import com.accenture.franquicias.domain.model.Sucursal;
 import com.accenture.franquicias.infrastructure.entrypoints.dto.FranquiciaDTO;
+import com.accenture.franquicias.infrastructure.entrypoints.dto.ModificarStockRequest;
 import com.accenture.franquicias.infrastructure.entrypoints.dto.ProductoDTO;
 import com.accenture.franquicias.infrastructure.entrypoints.dto.SucursalDTO;
 
@@ -61,13 +62,48 @@ public class FranquiciaController {
                 .map(this::mapToDTO);
     }
 
+    @PostMapping("/{franquiciaId}/sucursales/{sucursalId}/productos")
+    @ResponseStatus(HttpStatus.CREATED)
+    public Mono<FranquiciaDTO> agregarProducto(
+            @PathVariable String franquiciaId,
+            @PathVariable String sucursalId,
+            @Valid @RequestBody ProductoDTO productoDto) {
+
+        Producto productoDominio = new Producto(productoDto.id(), productoDto.nombre(), productoDto.stock());
+
+        return useCase.agregarProducto(franquiciaId, sucursalId, productoDominio)
+                .map(this::mapToDTO);
+    }
+
+    @DeleteMapping("/{franquiciaId}/sucursales/{sucursalId}/productos/{productoId}")
+    public Mono<FranquiciaDTO> eliminarProducto(
+            @PathVariable String franquiciaId,
+            @PathVariable String sucursalId,
+            @PathVariable String productoId) {
+
+        return useCase.eliminarProducto(franquiciaId, sucursalId, productoId)
+                .map(this::mapToDTO);
+    }
+
+    @PutMapping("/{franquiciaId}/sucursales/{sucursalId}/productos/{productoId}/stock")
+    public Mono<FranquiciaDTO> modificarStock(
+            @PathVariable String franquiciaId,
+            @PathVariable String sucursalId,
+            @PathVariable String productoId,
+            @Valid @RequestBody ModificarStockRequest request) {
+
+        return useCase.modificarStock(franquiciaId, sucursalId, productoId, request.nuevoStock())
+                .map(this::mapToDTO);
+    }
+
     private FranquiciaDTO mapToDTO(Franquicia f) {
         if (f == null) {
             return null;
         }
-        List<SucursalDTO> sucursales = f.sucursales() == null ? new ArrayList<>() : f.sucursales().stream()
-                .map(this::mapToDTO)
-                .collect(Collectors.toList());
+        List<SucursalDTO> sucursales = f.sucursales() == null ? new ArrayList<>()
+                : f.sucursales().stream()
+                        .map(this::mapToDTO)
+                        .collect(Collectors.toList());
         return new FranquiciaDTO(f.id(), f.nombre(), sucursales);
     }
 
@@ -75,9 +111,10 @@ public class FranquiciaController {
         if (s == null) {
             return null;
         }
-        List<ProductoDTO> productos = s.productos() == null ? new ArrayList<>() : s.productos().stream()
-                .map(p -> new ProductoDTO(p.id(), p.nombre(), p.stock()))
-                .collect(Collectors.toList());
+        List<ProductoDTO> productos = s.productos() == null ? new ArrayList<>()
+                : s.productos().stream()
+                        .map(p -> new ProductoDTO(p.id(), p.nombre(), p.stock()))
+                        .collect(Collectors.toList());
         return new SucursalDTO(s.id(), s.nombre(), productos);
     }
 
@@ -85,9 +122,10 @@ public class FranquiciaController {
         if (dto == null) {
             return null;
         }
-        List<Sucursal> sucursales = dto.sucursales() == null ? new ArrayList<>() : dto.sucursales().stream()
-                .map(this::mapToDomain)
-                .collect(Collectors.toList());
+        List<Sucursal> sucursales = dto.sucursales() == null ? new ArrayList<>()
+                : dto.sucursales().stream()
+                        .map(this::mapToDomain)
+                        .collect(Collectors.toList());
         return new Franquicia(dto.id(), dto.nombre(), sucursales);
     }
 
@@ -95,9 +133,10 @@ public class FranquiciaController {
         if (dto == null) {
             return null;
         }
-        List<Producto> productos = dto.productos() == null ? new ArrayList<>() : dto.productos().stream()
-                .map(p -> new Producto(p.id(), p.nombre(), p.stock()))
-                .collect(Collectors.toList());
+        List<Producto> productos = dto.productos() == null ? new ArrayList<>()
+                : dto.productos().stream()
+                        .map(p -> new Producto(p.id(), p.nombre(), p.stock()))
+                        .collect(Collectors.toList());
         return new Sucursal(dto.id(), dto.nombre(), productos);
     }
 }
