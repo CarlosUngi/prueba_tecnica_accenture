@@ -151,4 +151,46 @@ public class AdministrarFranquiciaUseCase {
                                     prodMax.stock()));
                 });
     }
+
+    public Mono<Franquicia> actualizarNombreFranquicia(String franquiciaId, String nuevoNombre) {
+        return repository.findById(franquiciaId)
+                .switchIfEmpty(Mono.error(new IllegalArgumentException("La franquicia no existe.")))
+                .map(f -> f.conNombre(nuevoNombre))
+                .flatMap(repository::save);
+    }
+
+    public Mono<Franquicia> actualizarNombreSucursal(String franquiciaId, String sucursalId, String nuevoNombre) {
+        return repository.findById(franquiciaId)
+                .switchIfEmpty(Mono.error(new IllegalArgumentException("La franquicia no existe.")))
+                .flatMap(franquicia -> {
+                    List<Sucursal> sucursalesModificadas = franquicia.sucursales().stream().map(s -> {
+                        if (s.id().equals(sucursalId)) {
+                            return s.conNombre(nuevoNombre);
+                        }
+                        return s;
+                    }).collect(Collectors.toList());
+                    return repository.save(new Franquicia(franquicia.id(), franquicia.nombre(), sucursalesModificadas));
+                });
+    }
+
+    public Mono<Franquicia> actualizarNombreProducto(String franquiciaId, String sucursalId, String productoId,
+            String nuevoNombre) {
+        return repository.findById(franquiciaId)
+                .switchIfEmpty(Mono.error(new IllegalArgumentException("La franquicia no existe.")))
+                .flatMap(franquicia -> {
+                    List<Sucursal> sucursalesModificadas = franquicia.sucursales().stream().map(sucursal -> {
+                        if (sucursal.id().equals(sucursalId)) {
+                            List<Producto> productosModificados = sucursal.productos().stream().map(p -> {
+                                if (p.id().equals(productoId)) {
+                                    return p.conNombre(nuevoNombre);
+                                }
+                                return p;
+                            }).collect(Collectors.toList());
+                            return new Sucursal(sucursal.id(), sucursal.nombre(), productosModificados);
+                        }
+                        return sucursal;
+                    }).collect(Collectors.toList());
+                    return repository.save(new Franquicia(franquicia.id(), franquicia.nombre(), sucursalesModificadas));
+                });
+    }
 }

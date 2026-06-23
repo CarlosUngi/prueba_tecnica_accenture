@@ -10,6 +10,24 @@ services:
       MONGO_INITDB_DATABASE: franquicias
     volumes:
       - mongo_data:/data/db
+    networks:
+      - franquicias-net
+
+  app:
+    build: .
+    container_name: franquicias_api
+    ports:
+      - "8090:8080"
+    depends_on:
+      - mongodb
+    environment:
+      SPRING_DATA_MONGODB_URI: mongodb://mongodb:27017/franquicias
+    networks:
+      - franquicias-net
 
 volumes:
   mongo_data:
+
+networks:
+  franquicias-net:
+    driver: bridge

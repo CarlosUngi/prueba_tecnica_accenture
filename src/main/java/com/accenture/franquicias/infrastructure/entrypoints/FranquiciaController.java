@@ -4,9 +4,11 @@ import com.accenture.franquicias.application.usecase.AdministrarFranquiciaUseCas
 import com.accenture.franquicias.domain.model.Franquicia;
 import com.accenture.franquicias.domain.model.Producto;
 import com.accenture.franquicias.domain.model.Sucursal;
+import com.accenture.franquicias.infrastructure.entrypoints.dto.ActualizarNombreRequest;
 import com.accenture.franquicias.infrastructure.entrypoints.dto.FranquiciaDTO;
 import com.accenture.franquicias.infrastructure.entrypoints.dto.ModificarStockRequest;
 import com.accenture.franquicias.infrastructure.entrypoints.dto.ProductoDTO;
+import com.accenture.franquicias.infrastructure.entrypoints.dto.ProductoMayorStockResponse;
 import com.accenture.franquicias.infrastructure.entrypoints.dto.SucursalDTO;
 
 import jakarta.validation.Valid;
@@ -97,9 +99,36 @@ public class FranquiciaController {
     }
 
     @GetMapping("/{franquiciaId}/max-stock-por-sucursal")
-    public Flux<com.accenture.franquicias.infrastructure.entrypoints.dto.ProductoMayorStockResponse> obtenerProductosMaximoStock(
+    public Flux<ProductoMayorStockResponse> obtenerProductosMaximoStock(
             @PathVariable String franquiciaId) {
         return useCase.obtenerProductosMaximoStock(franquiciaId);
+    }
+
+    @PutMapping("/{franquiciaId}/nombre")
+    public Mono<FranquiciaDTO> actualizarNombreFranquicia(
+            @PathVariable String franquiciaId,
+            @Valid @RequestBody ActualizarNombreRequest request) {
+        return useCase.actualizarNombreFranquicia(franquiciaId, request.nuevoNombre())
+                .map(this::mapToDTO);
+    }
+
+    @PutMapping("/{franquiciaId}/sucursales/{sucursalId}/nombre")
+    public Mono<FranquiciaDTO> actualizarNombreSucursal(
+            @PathVariable String franquiciaId,
+            @PathVariable String sucursalId,
+            @Valid @RequestBody ActualizarNombreRequest request) {
+        return useCase.actualizarNombreSucursal(franquiciaId, sucursalId, request.nuevoNombre())
+                .map(this::mapToDTO);
+    }
+
+    @PutMapping("/{franquiciaId}/sucursales/{sucursalId}/productos/{productoId}/nombre")
+    public Mono<FranquiciaDTO> actualizarNombreProducto(
+            @PathVariable String franquiciaId,
+            @PathVariable String sucursalId,
+            @PathVariable String productoId,
+            @Valid @RequestBody ActualizarNombreRequest request) {
+        return useCase.actualizarNombreProducto(franquiciaId, sucursalId, productoId, request.nuevoNombre())
+                .map(this::mapToDTO);
     }
 
     private FranquiciaDTO mapToDTO(Franquicia f) {
