@@ -30,6 +30,7 @@ class AdministrarFranquiciaUseCaseTest {
     void agregarFranquicia_DebeGuardarExitosamente() {
         Franquicia franquiciaEntrada = new Franquicia(null, "Franquicia Prueba", new ArrayList<>());
         Franquicia franquiciaGuardada = new Franquicia("12345", "Franquicia Prueba", new ArrayList<>());
+
         when(repository.save(any(Franquicia.class))).thenReturn(Mono.just(franquiciaGuardada));
 
         StepVerifier.create(useCase.agregarFranquicia(franquiciaEntrada))
@@ -48,6 +49,7 @@ class AdministrarFranquiciaUseCaseTest {
 
         when(repository.findById(franquiciaId)).thenReturn(Mono.just(franquiciaExistente));
         when(repository.save(any(Franquicia.class))).thenReturn(Mono.just(franquiciaActualizada));
+
         StepVerifier.create(useCase.agregarSucursal(franquiciaId, nuevaSucursal))
                 .expectNextMatches(f -> f.sucursales().size() == 1 &&
                         f.sucursales().get(0).nombre().equals("Sucursal Medellin"))
@@ -62,6 +64,64 @@ class AdministrarFranquiciaUseCaseTest {
         when(repository.findById(idInvalido)).thenReturn(Mono.empty());
 
         StepVerifier.create(useCase.agregarSucursal(idInvalido, nuevaSucursal))
+                .expectError(IllegalArgumentException.class)
+                .verify();
+    }
+
+    @Test
+    void agregarProducto_DebeAdicionarProductoASucursalCorrecta() {
+        String franquiciaId = "fran-01";
+        String sucursalId = "suc-01";
+
+        Sucursal sucursalInicial = new Sucursal(sucursalId, "Sucursal Centro", new ArrayList<>());
+        Franquicia franquiciaExistente = new Franquicia(franquiciaId, "Franquicia Bogota", List.of(sucursalInicial));
+
+        com.accenture.franquicias.domain.model.Producto nuevoProducto = new com.accenture.franquicias.domain.model.Producto(
+                null, "Empanada", 20);
+
+        when(repository.findById(franquiciaId)).thenReturn(Mono.just(franquiciaExistente));
+
+        Franquicia franquiciaGuardada = new Franquicia(franquiciaId, "Franquicia Bogota",
+                List.of(new Sucursal(sucursalId, "Sucursal Centro",
+                        List.of(new com.accenture.franquicias.domain.model.Producto("prod-1", "Empanada", 20)))));
+        when(repository.save(any(Franquicia.class))).thenReturn(Mono.just(franquiciaGuardada));
+
+        StepVerifier.create(useCase.agregarProducto(franquiciaId, sucursalId, nuevoProducto))
+                .expectNextMatches(f -> {
+                    Sucursal s = f.sucursales().get(0);
+                    return s.productos().size() == 1 && s.productos().get(0).nombre().equals("Empanada");
+                })
+                .verifyComplete();
+    }
+
+    @Test
+    void modificarStock_DebeActualizarCantidadDeUnProducto() {
+        String franquiciaId = "fran-01";
+        String sucursalId = "suc-01";
+        String productoId = "prod-01";
+
+        com.accenture.franquicias.domain.model.Producto productoInicial = new com.accenture.franquicias.domain.model.Producto(
+                productoId, "Camisa", 10);
+        Sucursal sucursal = new Sucursal(sucursalId, "Sucursal Principal", List.of(productoInicial));
+        Franquicia franquicia = new Franquicia(franquiciaId, "Franquicia Textil", List.of(sucursal));
+
+        when(repository.findById(franquiciaId)).thenReturn(Mono.just(franquicia));
+
+        Franquicia franquiciaActualizada = new Franquicia(franquiciaId, "Franquicia Textil",
+                List.of(new Sucursal(sucursalId, "Sucursal Principal",
+                        List.of(new com.accenture.franquicias.domain.model.Producto(productoId, "Camisa", 50)))));
+        when(repository.save(any(Franquicia.class))).thenReturn(Mono.just(franquiciaActualizada));
+
+        StepVerifier.create(useCase.modificarStock(franquiciaId, sucursalId, productoId, 50))
+                .expectNextMatches(f -> f.sucursales().get(0).productos().get(0).stock() == 50)
+                .verifyComplete();
+    }
+
+    @Test
+    void modificarStock_DebeLanzarError_SiFranquiciaNoExiste() {
+        when(repository.findById("invalido")).thenReturn(Mono.empty());
+
+        StepVerifier.create(useCase.modificarStock("invalido", "suc-1", "prod-1", 100))
                 .expectError(IllegalArgumentException.class)
                 .verify();
     }
