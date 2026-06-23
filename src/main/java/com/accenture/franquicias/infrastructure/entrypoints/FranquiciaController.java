@@ -96,6 +96,12 @@ public class FranquiciaController {
                 .map(this::mapToDTO);
     }
 
+    @GetMapping("/{franquiciaId}/max-stock-por-sucursal")
+    public Flux<com.accenture.franquicias.infrastructure.entrypoints.dto.ProductoMayorStockResponse> obtenerProductosMaximoStock(
+            @PathVariable String franquiciaId) {
+        return useCase.obtenerProductosMaximoStock(franquiciaId);
+    }
+
     private FranquiciaDTO mapToDTO(Franquicia f) {
         if (f == null) {
             return null;

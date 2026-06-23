@@ -4,6 +4,7 @@ import com.accenture.franquicias.domain.model.Franquicia;
 import com.accenture.franquicias.domain.model.Producto;
 import com.accenture.franquicias.domain.model.Sucursal;
 import com.accenture.franquicias.domain.repository.FranquiciaRepository;
+import com.accenture.franquicias.infrastructure.entrypoints.dto.ProductoMayorStockResponse;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -128,6 +129,26 @@ public class AdministrarFranquiciaUseCase {
                     Franquicia franquiciaActualizada = new Franquicia(franquicia.id(), franquicia.nombre(),
                             sucursalesModificadas);
                     return repository.save(franquiciaActualizada);
+                });
+    }
+
+    public Flux<ProductoMayorStockResponse> obtenerProductosMaximoStock(String franquiciaId) {
+        return repository.findById(franquiciaId)
+                .switchIfEmpty(Mono
+                        .error(new IllegalArgumentException("La franquicia con ID " + franquiciaId + " no existe.")))
+                .flatMapMany(franquicia -> Flux
+                        .fromIterable(franquicia.sucursales() != null ? franquicia.sucursales() : List.of()))
+                .flatMap(sucursal -> {
+                    List<Producto> listaProductos = sucursal.productos() != null ? sucursal.productos() : List.of();
+                    if (listaProductos.isEmpty()) {
+                        return Mono.empty();
+                    }
+                    return Flux.fromIterable(listaProductos)
+                            .reduce((p1, p2) -> p1.stock() >= p2.stock() ? p1 : p2)
+                            .map(prodMax -> new ProductoMayorStockResponse(
+                                    sucursal.nombre(),
+                                    prodMax.nombre(),
+                                    prodMax.stock()));
                 });
     }
 }
